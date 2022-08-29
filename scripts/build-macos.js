@@ -28,7 +28,7 @@ builder({
         publish: process.env.GH_TOKEN || process.env.GITHUB_TOKEN ? {
             provider: 'github',
             channel: `latest-${process.env.ARCH}`,
-        } : never,
+        } : 'never',
     }
 //     publish: isTag ? 'always' : 'onTagOrDraft',
 }).catch(e => {
