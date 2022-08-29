@@ -28,9 +28,9 @@ builder({
         publish: process.env.GH_TOKEN || process.env.GITHUB_TOKEN ? {
             provider: 'github',
             channel: `latest-${process.env.ARCH}`,
-        } : 'never',
+        } : undefined,
     }
-//     publish: isTag ? 'always' : 'onTagOrDraft',
+     publish: process.env.GH_TOKEN || process.env.GITHUB_TOKEN ? ( isTag ? 'always' : 'onTagOrDraft') : 'never',
 }).catch(e => {
     console.error(e)
     process.exit(1)
