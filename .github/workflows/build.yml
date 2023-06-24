@@ -157,17 +157,11 @@ jobs:
       uses: actions/setup-node@v3.6.0
       with:
         node-version: 18
-
-    - name: Setup Python2 for cross build
-      uses: actions/setup-python@v4
-      with:
-        python-version: 2.7
-      if: matrix.build-arch != 'x64'  
-      
+     
     - name: Install deps (x64)
       run: |
         sudo apt-get update
-        sudo apt-get install libarchive-tools zsh crossbuild-essential-${{matrix.arch}}
+        sudo apt-get install libarchive-tools zsh crossbuild-essential-${{matrix.arch}} python2-dev
       
     - name: Setup Crossbuild (${{matrix.build-arch}})
       run: |
