@@ -1,134 +1,134 @@
 name: Package-Build
 on: [push, pull_request]
 jobs:
-  Lint:
-    runs-on: macos-11
+#   Lint:
+#     runs-on: macos-11
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v3
+#       with:
+#         fetch-depth: 0
 
-    - name: Installing Node
-      uses: actions/setup-node@v3.6.0
-      with:
-        node-version: 16
+#     - name: Installing Node
+#       uses: actions/setup-node@v3.6.0
+#       with:
+#         node-version: 16
 
-    - name: Install deps
-      run: |
-        npm i -g yarn@1.19.1
-        cd app
-        yarn
-        cd ..
-        rm app/node_modules/.yarn-integrity
-        yarn
+#     - name: Install deps
+#       run: |
+#         npm i -g yarn@1.19.1
+#         cd app
+#         yarn
+#         cd ..
+#         rm app/node_modules/.yarn-integrity
+#         yarn
 
-    - name: Build typings
-      run: yarn run build:typings
+#     - name: Build typings
+#       run: yarn run build:typings
 
-    - name: Lint
-      run: yarn run lint
+#     - name: Lint
+#       run: yarn run lint
 
-  macOS-Build:
-    runs-on: macos-11
-    needs: Lint
-    strategy:
-      matrix:
-        include:
-          - arch: x86_64
-          - arch: arm64
-      fail-fast: false
+#   macOS-Build:
+#     runs-on: macos-11
+#     needs: Lint
+#     strategy:
+#       matrix:
+#         include:
+#           - arch: x86_64
+#           - arch: arm64
+#       fail-fast: false
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v3
+#       with:
+#         fetch-depth: 0
 
-    - name: Installing Node
-      uses: actions/setup-node@v3.6.0
-      with:
-        node-version: 16
+#     - name: Installing Node
+#       uses: actions/setup-node@v3.6.0
+#       with:
+#         node-version: 16
 
-    - name: Install deps
-      run: |
-        sudo npm i -g yarn@1.22.1
-        yarn --network-timeout 1000000
-      env:
-        ARCH: ${{matrix.arch}}
+#     - name: Install deps
+#       run: |
+#         sudo npm i -g yarn@1.22.1
+#         yarn --network-timeout 1000000
+#       env:
+#         ARCH: ${{matrix.arch}}
 
-    - name: Fix cross build
-      run: |
-        rm -rf app/node_modules/cpu-features
-        rm -rf app/node_modules/ssh2/crypto/build
-      if: matrix.arch == 'arm64'
+#     - name: Fix cross build
+#       run: |
+#         rm -rf app/node_modules/cpu-features
+#         rm -rf app/node_modules/ssh2/crypto/build
+#       if: matrix.arch == 'arm64'
 
-    - name: Webpack
-      run: yarn run build
+#     - name: Webpack
+#       run: yarn run build
 
-    - name: Prepackage plugins
-      run: scripts/prepackage-plugins.mjs
-      env:
-        ARCH: ${{matrix.arch}}
+#     - name: Prepackage plugins
+#       run: scripts/prepackage-plugins.mjs
+#       env:
+#         ARCH: ${{matrix.arch}}
 
-    - run: sed -i '' 's/updateInfo = await/\/\/updateInfo = await/g' node_modules/app-builder-lib/out/targets/ArchiveTarget.js
+#     - run: sed -i '' 's/updateInfo = await/\/\/updateInfo = await/g' node_modules/app-builder-lib/out/targets/ArchiveTarget.js
 
-    # Work around electron-builder beta bug
-    - run: ln -s ../../node_modules/electron app/node_modules
+#     # Work around electron-builder beta bug
+#     - run: ln -s ../../node_modules/electron app/node_modules
 
-    - name: Build and sign packages
-      run: scripts/build-macos.mjs
-      if: github.repository == 'Eugeny/tabby' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
-      env:
-        ARCH: ${{matrix.arch}}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        KEYGEN_TOKEN: ${{ secrets.KEYGEN_TOKEN }}
-        CSC_LINK: ${{ secrets.CSC_LINK }}
-        CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-        APPSTORE_USERNAME: ${{ secrets.APPSTORE_USERNAME }}
-        APPSTORE_PASSWORD: ${{ secrets.APPSTORE_PASSWORD }}
-        USE_HARD_LINKS: false
-        # DEBUG: electron-builder,electron-builder:*
+#     - name: Build and sign packages
+#       run: scripts/build-macos.mjs
+#       if: github.repository == 'Eugeny/tabby' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
+#       env:
+#         ARCH: ${{matrix.arch}}
+#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         KEYGEN_TOKEN: ${{ secrets.KEYGEN_TOKEN }}
+#         CSC_LINK: ${{ secrets.CSC_LINK }}
+#         CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+#         APPSTORE_USERNAME: ${{ secrets.APPSTORE_USERNAME }}
+#         APPSTORE_PASSWORD: ${{ secrets.APPSTORE_PASSWORD }}
+#         USE_HARD_LINKS: false
+#         # DEBUG: electron-builder,electron-builder:*
 
-    - name: Build packages without signing
-      run: scripts/build-macos.mjs
-      if: "! (github.repository == 'Eugeny/tabby' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')))"
-      env:
-        ARCH: ${{matrix.arch}}
-        # DEBUG: electron-builder,electron-builder:*
+#     - name: Build packages without signing
+#       run: scripts/build-macos.mjs
+#       if: "! (github.repository == 'Eugeny/tabby' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')))"
+#       env:
+#         ARCH: ${{matrix.arch}}
+#         # DEBUG: electron-builder,electron-builder:*
 
-    - name: Upload symbols
-      run: |
-        sudo npm install -g @sentry/cli --unsafe-perm
-        ./scripts/sentry-upload.mjs
-      env:
-        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-        SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+#     - name: Upload symbols
+#       run: |
+#         sudo npm install -g @sentry/cli --unsafe-perm
+#         ./scripts/sentry-upload.mjs
+#       env:
+#         SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+#         SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+#         SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
-    - name: Package artifacts
-      run: |
-        mkdir artifact-pkg
-        mv dist/*.pkg artifact-pkg/
-        mkdir artifact-zip
-        mv dist/*.zip artifact-zip/
+#     - name: Package artifacts
+#       run: |
+#         mkdir artifact-pkg
+#         mv dist/*.pkg artifact-pkg/
+#         mkdir artifact-zip
+#         mv dist/*.zip artifact-zip/
 
-    - uses: actions/upload-artifact@master
-      name: Upload PKG
-      with:
-        name: macOS .pkg (${{matrix.arch}})
-        path: artifact-pkg
+#     - uses: actions/upload-artifact@master
+#       name: Upload PKG
+#       with:
+#         name: macOS .pkg (${{matrix.arch}})
+#         path: artifact-pkg
 
-    - uses: actions/upload-artifact@master
-      name: Upload ZIP
-      with:
-        name: macOS .zip (${{matrix.arch}})
-        path: artifact-zip
+#     - uses: actions/upload-artifact@master
+#       name: Upload ZIP
+#       with:
+#         name: macOS .zip (${{matrix.arch}})
+#         path: artifact-zip
 
   Linux-Build:
     runs-on: ubuntu-20.04
-    needs: Lint
+#     needs: Lint
     strategy:
       matrix:
         include:
@@ -172,10 +172,10 @@ jobs:
           elif [[ ${{matrix.arch}} == 'arm64' ]]; then
             echo "PKG_CONFIG_PATH=/build-sysroot/usr/lib/pkgconfig/:/build-sysroot/usr/lib/aarch64-linux-gnu/pkgconfig/" >> $GITHUB_ENV
           fi
-          sudo apt-get update -y && sudo apt-get install debootstrap qemu-user-static binfmt-support -y
-          sudo mkdir  -p /tmp/debootstrap-cache /build-sysroot
-          sudo qemu-debootstrap --include=libfontconfig1-dev,libsecret-1-dev,libnss3,libatk1.0-0,libatk-bridge2.0-0,libgdk-pixbuf2.0-0,libgtk-3-0,libgbm1 --variant=buildd --exclude=snapd --components=main,restricted,universe,multiverse --extractor=dpkg-deb --arch ${{matrix.arch}} --cache-dir=/tmp/debootstrap-cache/ bionic /build-sysroot/ http://ports.ubuntu.com/ubuntu-ports/
-          find /build-sysroot -type l -lname '/*' -exec sh -c 'file="$0"; dir=$(dirname "$file"); target=$(readlink "$0"); prefix=$(dirname "$dir" | sed 's@[^/]*@\.\.@g'); newtarget="$prefix$target"; ln -snf $newtarget $file {} ;'
+          sudo mkdir /build-sysroot
+          pip3 install cross-sysroot
+          echo -e "libfontconfig1-dev\nlibsecret-1-dev\nlibnss3\nlibatk1.0-0\nlibatk-bridge2.0-0\nlibgdk-pixbuf2.0-0\nlibgtk-3-0\nlibgbm1" >> sysroot_deps.txt
+          cross-sysroot --distribution ubuntu --distribution-version bionic --distribution-url http://ports.ubuntu.com/ubuntu-ports --architecture ${{matrix.arch}} --build-root /build-sysroot sysroot_deps.txt
       if: matrix.build-arch != 'x64'
       
     - name: Install npm_modules (${{matrix.arch}})
@@ -248,24 +248,24 @@ jobs:
 #         USE_HARD_LINKS: false
 #       if: matrix.build-arch == 'arm' && github.repository == 'Eugeny/tabby' && startsWith(github.ref, 'refs/tags')
 
-    - name: Upload symbols (x64 only)
-      run: |
-        sudo npm install -g @sentry/cli --unsafe-perm
-        ./scripts/sentry-upload.mjs
-      if: matrix.build-arch == 'x64'
-      env:
-        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-        SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+#     - name: Upload symbols (x64 only)
+#       run: |
+#         sudo npm install -g @sentry/cli --unsafe-perm
+#         ./scripts/sentry-upload.mjs
+#       if: matrix.build-arch == 'x64'
+#       env:
+#         SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+#         SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+#         SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
-    - name: Upload packages to packagecloud.io
-      uses: Eugeny/packagecloud-action@main
-      if: github.repository == 'Eugeny/tabby' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-      env:
-        PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
-      with:
-        repo: 'eugeny/tabby'
-        dir: 'dist'
+#     - name: Upload packages to packagecloud.io
+#       uses: Eugeny/packagecloud-action@main
+#       if: github.repository == 'Eugeny/tabby' && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+#       env:
+#         PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+#       with:
+#         repo: 'eugeny/tabby'
+#         dir: 'dist'
 
     - uses: actions/upload-artifact@master
       name: Upload DEB (${{matrix.arch}})
@@ -299,83 +299,83 @@ jobs:
       if: matrix.build-arch == 'x64'
 
 
-  Windows-Build:
-    runs-on: windows-2022
-    needs: Lint
-    strategy:
-      matrix:
-        include:
-          - arch: x64
-          - arch: arm64
-      fail-fast: false
+#   Windows-Build:
+#     runs-on: windows-2022
+#     needs: Lint
+#     strategy:
+#       matrix:
+#         include:
+#           - arch: x64
+#           - arch: arm64
+#       fail-fast: false
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v3
+#       with:
+#         fetch-depth: 0
 
-    - name: Installing Node
-      uses: actions/setup-node@v3.6.0
-      with:
-        node-version: 16
+#     - name: Installing Node
+#       uses: actions/setup-node@v3.6.0
+#       with:
+#         node-version: 16
 
-    - name: Update node-gyp
-      run: |
-        npm install --global node-gyp@8.4.1
-        npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
+#     - name: Update node-gyp
+#       run: |
+#         npm install --global node-gyp@8.4.1
+#         npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
 
-    - name: Build
-      shell: powershell
-      run: |
-        npm i -g yarn@1.19.1
-        yarn --network-timeout 1000000
-        yarn run build
-        node scripts/prepackage-plugins.mjs
-      env:
-        ARCH: ${{matrix.arch}}
+#     - name: Build
+#       shell: powershell
+#       run: |
+#         npm i -g yarn@1.19.1
+#         yarn --network-timeout 1000000
+#         yarn run build
+#         node scripts/prepackage-plugins.mjs
+#       env:
+#         ARCH: ${{matrix.arch}}
 
-    - name: Build and sign packages
-      run: node scripts/build-windows.mjs
-      if: github.repository == 'Eugeny/tabby' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
-      env:
-        ARCH: ${{matrix.arch}}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        KEYGEN_TOKEN: ${{ secrets.KEYGEN_TOKEN }}
-        WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-        WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-        DEBUG: electron-builder,electron-builder:*
+#     - name: Build and sign packages
+#       run: node scripts/build-windows.mjs
+#       if: github.repository == 'Eugeny/tabby' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags'))
+#       env:
+#         ARCH: ${{matrix.arch}}
+#         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         KEYGEN_TOKEN: ${{ secrets.KEYGEN_TOKEN }}
+#         WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+#         WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+#         DEBUG: electron-builder,electron-builder:*
 
-    - name: Build packages without signing
-      run: node scripts/build-windows.mjs
-      if: "!(github.repository == 'Eugeny/tabby' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')))"
-      env:
-        ARCH: ${{matrix.arch}}
+#     - name: Build packages without signing
+#       run: node scripts/build-windows.mjs
+#       if: "!(github.repository == 'Eugeny/tabby' && github.event_name == 'push' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags')))"
+#       env:
+#         ARCH: ${{matrix.arch}}
 
-    - name: Upload symbols
-      run: |
-        npm install @sentry/cli
-        node scripts/sentry-upload.mjs
-      env:
-        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-        SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
+#     - name: Upload symbols
+#       run: |
+#         npm install @sentry/cli
+#         node scripts/sentry-upload.mjs
+#       env:
+#         SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+#         SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+#         SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
 
-    - name: Package artifacts
-      run: |
-        mkdir artifact-setup
-        mv dist/*-setup-*.exe artifact-setup/
-        mkdir artifact-portable
-        mv dist/*-portable-*.zip artifact-portable/
+#     - name: Package artifacts
+#       run: |
+#         mkdir artifact-setup
+#         mv dist/*-setup-*.exe artifact-setup/
+#         mkdir artifact-portable
+#         mv dist/*-portable-*.zip artifact-portable/
 
-    - uses: actions/upload-artifact@master
-      name: Upload installer
-      with:
-        name: Windows installer (${{matrix.arch}})
-        path: artifact-setup
+#     - uses: actions/upload-artifact@master
+#       name: Upload installer
+#       with:
+#         name: Windows installer (${{matrix.arch}})
+#         path: artifact-setup
 
-    - uses: actions/upload-artifact@master
-      name: Upload portable build
-      with:
-        name: Windows portable build (${{matrix.arch}})
-        path: artifact-portable
+#     - uses: actions/upload-artifact@master
+#       name: Upload portable build
+#       with:
+#         name: Windows portable build (${{matrix.arch}})
+#         path: artifact-portable
