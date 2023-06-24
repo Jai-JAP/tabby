@@ -141,8 +141,8 @@ jobs:
             arch: armhf
             triplet: arm-linux-gnueabihf-
     env:
-      CC: '${{matrix.triplet}}gcc --sysroot=/build-sysroot/'
-      CXX: '${{matrix.triplet}}g++ --sysroot=/build-sysroot/'
+      CC: ${{matrix.triplet}}gcc
+      CXX: ${{matrix.triplet}}g++
       ARCH: ${{matrix.build-arch}}
       npm_config_arch: ${{matrix.build-arch}}
       npm_config_target_arch: ${{matrix.build-arch}}
@@ -165,6 +165,13 @@ jobs:
       
     - name: Setup Crossbuild (${{matrix.build-arch}})
       run: |
+          echo "CC=\"${CC} --sysroot=/build-sysroot/\"" >> $GITHUB_ENV
+          echo "CXX=\"${CXX} --sysroot=/build-sysroot/\"" >> $GITHUB_ENV
+          if [[ ${{matrix.arch}} == 'armhf' ]]; then
+            echo "PKG_CONFIG_PATH=/build-sysroot/usr/lib/pkgconfig/:/build-sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig/" >> $GITHUB_ENV
+          elif [[ ${{matrix.arch}} == 'arm64' ]]; then
+            echo "PKG_CONFIG_PATH=/build-sysroot/usr/lib/pkgconfig/:/build-sysroot/usr/lib/aarch64-linux-gnu/pkgconfig/" >> $GITHUB_ENV
+          fi
           sudo apt-get update -y && sudo apt-get install debootstrap qemu-user-static binfmt-support -y
           sudo mkdir  -p /tmp/debootstrap-cache /build-sysroot
           sudo qemu-debootstrap --include=libfontconfig1-dev,libsecret-1-dev,libnss3,libatk1.0-0,libatk-bridge2.0-0,libgdk-pixbuf2.0-0,libgtk-3-0,libgbm1 --variant=buildd --exclude=snapd --components=main,restricted,universe,multiverse --extractor=dpkg-deb --arch ${{matrix.arch}} --cache-dir=/tmp/debootstrap-cache/ bionic /build-sysroot/ http://ports.ubuntu.com/ubuntu-ports/
@@ -173,11 +180,6 @@ jobs:
       
     - name: Install npm_modules (${{matrix.arch}})
       run: |
-        if [[ ${{matrix.arch}} == 'armhf' ]]; then
-          export PKG_CONFIG_PATH=/build-sysroot/usr/lib/pkgconfig/:/build-sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig/
-        elif [[ ${{matrix.arch}} == 'arm64' ]]; then
-          export PKG_CONFIG_PATH=/build-sysroot/usr/lib/pkgconfig/:/build-sysroot/usr/lib/aarch64-linux-gnu/pkgconfig/
-        fi
         npm i -g yarn
         yarn --network-timeout 1000000 --arch=${{matrix.build-arch}} --target_arch=${{matrix.build-arch}}
 
