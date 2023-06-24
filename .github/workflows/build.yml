@@ -141,8 +141,8 @@ jobs:
             arch: armhf
             triplet: arm-linux-gnueabihf-
     env:
-      CC: '${{matrix.triplet}}gcc --sysroot=/build-sysroot'
-      CXX: '${{matrix.triplet}}g++ --sysroot=/build-sysroot'
+      CC: '${{matrix.triplet}}gcc --sysroot=/build-sysroot/'
+      CXX: '${{matrix.triplet}}g++ --sysroot=/build-sysroot/'
       ARCH: ${{matrix.build-arch}}
       npm_config_arch: ${{matrix.build-arch}}
       npm_config_target_arch: ${{matrix.build-arch}}
