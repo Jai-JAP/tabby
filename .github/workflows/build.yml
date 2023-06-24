@@ -173,7 +173,7 @@ jobs:
           elif [[ ${{matrix.arch}} == 'arm64' ]]; then
             echo "PKG_CONFIG_PATH=/build-sysroot/usr/lib/pkgconfig/:/build-sysroot/usr/lib/aarch64-linux-gnu/pkgconfig/" >> $GITHUB_ENV
           fi
-          sudo apt-get update -y && sudo apt-get install qemu-user-static binfmt-support -y
+          sudo apt-get update -y && sudo apt-get install debootstrap qemu-user-static binfmt-support -y
           sudo qemu-debootstrap --include=libfontconfig1-dev,libsecret-1-dev,libnss3,libatk1.0-0,libatk-bridge2.0-0,libgdk-pixbuf2.0-0,libgtk-3-0,libgbm1 --variant=buildd --exclude=snapd --components=main,restricted,universe,multiverse --extractor=dpkg-deb --arch ${{matrix.arch}} bionic /build-sysroot/ http://ports.ubuntu.com/ubuntu-ports/
           sudo find /build-sysroot -type l -lname '/*' -exec sh -c 'file="$0"; dir=$(dirname "$file"); target=$(readlink "$0"); prefix=$(dirname "$dir" | sed 's@[^/]*@\.\.@g'); newtarget="$prefix$target"; ln -snf $newtarget $file' {} \; ;
       if: matrix.build-arch != 'x64'
