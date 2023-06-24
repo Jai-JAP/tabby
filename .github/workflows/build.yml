@@ -173,7 +173,7 @@ jobs:
             echo "PKG_CONFIG_PATH=/build-sysroot/usr/lib/pkgconfig/:/build-sysroot/usr/lib/aarch64-linux-gnu/pkgconfig/" >> $GITHUB_ENV
           fi
           sudo mkdir /build-sysroot
-          pip3 install cross-sysroot
+          CC='' CXX='' pip3 install cross-sysroot
           echo -e "libfontconfig1-dev\nlibsecret-1-dev\nlibnss3\nlibatk1.0-0\nlibatk-bridge2.0-0\nlibgdk-pixbuf2.0-0\nlibgtk-3-0\nlibgbm1" >> sysroot_deps.txt
           cross-sysroot --distribution ubuntu --distribution-version bionic --distribution-url http://ports.ubuntu.com/ubuntu-ports --architecture ${{matrix.arch}} --build-root /build-sysroot sysroot_deps.txt
       if: matrix.build-arch != 'x64'
