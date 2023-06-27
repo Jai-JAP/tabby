@@ -168,7 +168,7 @@ jobs:
           echo "CFLAGS=--sysroot=/build-sysroot/" >> $GITHUB_ENV
           echo "CXXFLAGS=--sysroot=/build-sysroot/" >> $GITHUB_ENV
           echo "LDFLAGS=--sysroot=/build-sysroot/" >> $GITHUB_ENV
-          [[ ${{npm_config_arch}} == 'arm' ]] && echo "npm_config_arch=armv7l" >> $GITHUB_ENV
+          [[ ${npm_config_arch} == 'arm' ]] && echo "npm_config_arch=armv7l" >> $GITHUB_ENV
           if [[ ${{matrix.arch}} == 'armhf' ]]; then
             echo "PKG_CONFIG_PATH=/build-sysroot/usr/lib/pkgconfig/:/build-sysroot/usr/lib/arm-linux-gnueabihf/pkgconfig/" >> $GITHUB_ENV
           elif [[ ${{matrix.arch}} == 'arm64' ]]; then
