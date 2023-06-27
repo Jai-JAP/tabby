@@ -161,7 +161,7 @@ jobs:
     - name: Install deps (x64)
       run: |
         sudo apt-get update
-        sudo apt-get install libarchive-tools zsh crossbuild-essential-${{matrix.arch}} python2-dev
+        sudo apt-get install libarchive-tools zsh crossbuild-essential-${{matrix.arch}}
       
     - name: Setup Crossbuild (${{matrix.arch}})
       run: |
