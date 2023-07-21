@@ -181,7 +181,8 @@ jobs:
       
     - name: Install npm_modules (${{matrix.arch}})
       run: |
-        npm i -g yarn
+        npm i -g yarn node-gyp@latest
+        npm prefix -g | $(npm config set node_gyp "$(pwd)/node_modules/node-gyp/bin/node-gyp.js")
         yarn --network-timeout 1000000 --arch=${{matrix.build-arch}} --target_arch=${{matrix.build-arch}}
 
     - name: Webpack (${{matrix.arch}})
@@ -323,7 +324,7 @@ jobs:
 
 #     - name: Update node-gyp
 #       run: |
-#         npm install --global node-gyp@8.4.1
+#         npm install --global node-gyp@latest
 #         npm prefix -g | % {npm config set node_gyp "$_\node_modules\node-gyp\bin\node-gyp.js"}
 
 #     - name: Build
