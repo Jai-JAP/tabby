@@ -162,6 +162,7 @@ jobs:
 
     - name: root suid /bin/tar
       run: sudo chmod u+s "$(command -v tar)"
+      if: matrix.build-arch != 'x64'
 
     - name: Download cached sysroot
       uses: actions/cache@v3
@@ -173,6 +174,7 @@ jobs:
 
     - name: Setup cached sysroot
       run: ls / && sudo mv ./${{matrix.build-arch}}-sysroot /
+      if: matrix.build-arch != 'x64'
 
     - name: Install deps (amd64)
       run: |
