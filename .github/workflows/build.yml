@@ -161,7 +161,7 @@ jobs:
         node-version: 18
 
     - name: root suid /bin/tar
-      run: sudo chmod u+s /bin/tar
+      run: sudo chmod u+s "$(command -v tar)"
 
     - name: Download cached sysroot
       uses: actions/cache@v3
