@@ -171,6 +171,9 @@ jobs:
         key: sysroot-${{matrix.build-arch}}
         path: /${{matrix.build-arch}}-sysroot
 
+    - name: Setup cached sysroot
+      run: ls . && sudo mv ./${{matrix.build-arch}} /
+
     - name: Install deps (amd64)
       run: |
         sudo apt-get update
