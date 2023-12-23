@@ -172,7 +172,7 @@ jobs:
         path: /${{matrix.build-arch}}-sysroot
 
     - name: Setup cached sysroot
-      run: ls . && sudo mv ./${{matrix.build-arch}} /
+      run: ls / && sudo mv ./${{matrix.build-arch}}-sysroot /
 
     - name: Install deps (amd64)
       run: |
